@@ -2,13 +2,13 @@ Spree::Core::ControllerHelpers::Order.module_eval do
 
   # Associate the new order with the currently authenticated user before saving
   def before_save_new_order
-    @current_order.user ||= current_user
-    @current_order.wholesale = current_user.wholesaler? if current_user
+    @current_order.user ||= spree_current_user
+    @current_order.wholesale = spree_current_user.wholesaler? if spree_current_user
   end
 
   def after_save_new_order
     # make sure the user has permission to access the order (if they are a guest)
-    return if current_user
+    return if spree_current_user
     session[:access_token] = @current_order.token
   end
 
@@ -26,11 +26,11 @@ Spree::Core::ControllerHelpers::Order.module_eval do
       after_save_new_order
     end
 
-    if current_user && @current_order
-      @current_order.user = current_user unless @current_order.user.present? # Set the user if they just logged in.
-      if current_user.wholesaler? && !@current_order.is_wholesale?
+    if spree_current_user && @current_order
+      @current_order.user = spree_current_user unless @current_order.user.present? # Set the user if they just logged in.
+      if spree_current_user.wholesaler? && !@current_order.is_wholesale?
         @current_order.to_wholesale!
-      elsif !current_user.wholesaler? && @current_order.is_wholesale?
+      elsif !spree_current_user.wholesaler? && @current_order.is_wholesale?
         @current_order.to_fullsale!
       end
     end
